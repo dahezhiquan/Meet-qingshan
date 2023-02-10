@@ -2,7 +2,6 @@ package com.qingshan.controller;
 
 
 import com.qingshan.dto.Result;
-import com.qingshan.entity.ShopType;
 import com.qingshan.service.IShopTypeService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -12,12 +11,7 @@ import javax.annotation.Resource;
 import java.util.List;
 
 /**
- * <p>
- * 前端控制器
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
+ * 商户类型控制器，查询所有的商户类型
  */
 @RestController
 @RequestMapping("/shop-type")
@@ -27,8 +21,6 @@ public class ShopTypeController {
 
     @GetMapping("list")
     public Result queryTypeList() {
-        List<ShopType> typeList = typeService
-                .query().orderByAsc("sort").list();
-        return Result.ok(typeList);
+        return typeService.queryShopType();
     }
 }
