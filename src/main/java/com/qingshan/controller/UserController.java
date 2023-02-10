@@ -48,8 +48,6 @@ public class UserController {
 
     /**
      * 登出功能
-     *
-     * @return 无
      */
     @PostMapping("/logout")
     public Result logout() {
