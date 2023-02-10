@@ -8,6 +8,7 @@ import com.qingshan.entity.User;
 import com.qingshan.mapper.UserMapper;
 import com.qingshan.service.IUserService;
 import com.qingshan.utils.RegexUtils;
+import com.qingshan.utils.SystemConstants;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpSession;
@@ -53,8 +54,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
      */
     @Override
     public Result login(LoginFormDTO loginForm, HttpSession session) {
+        String phone = loginForm.getPhone();
         // 校验手机号
-        if (RegexUtils.isPhoneInvalid(loginForm.getPhone())) {
+        if (RegexUtils.isPhoneInvalid(phone)) {
             // 不符合，返回错误信息
             return Result.fail("手机号格式错误！");
         }
@@ -66,13 +68,31 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         }
 
         // 根据手机号查询用户
+        User user = query().eq("phone", phone).one();
 
         // 判断用户是否存在
+        if (user == null) {
+            // 不存在，创建新用户
+            user = createUserWithPhone(phone);
+        }
 
-        // 不存在，创建新用户
-
-        // 存在，保存用户信息到session中
-
+        // 保证用户一定存在，保存用户信息到session中
+        session.setAttribute("user", user);
         return Result.ok();
+    }
+
+    /**
+     * 根据手机号创建新用户
+     *
+     * @param phone 用户手机号码
+     * @return 一个用户对象
+     */
+    private User createUserWithPhone(String phone) {
+        User user = new User();
+        user.setPhone(phone);
+        // 采用固定前缀 + 随机字符串的方式生成用户名
+        user.setNickName(SystemConstants.USER_NICK_NAME_PREFIX + RandomUtil.randomString(10));
+        save(user);
+        return user;
     }
 }
