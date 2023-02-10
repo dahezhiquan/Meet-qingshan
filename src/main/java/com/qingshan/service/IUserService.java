@@ -11,7 +11,8 @@ import javax.servlet.http.HttpSession;
  * 用户相关服务类接口
  */
 public interface IUserService extends IService<User> {
+    // 发送验证码
     Result sendCode(String phone, HttpSession session);
-
+    // 登录
     Result login(LoginFormDTO loginForm, HttpSession session);
 }

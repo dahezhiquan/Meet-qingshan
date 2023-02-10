@@ -1,16 +1,13 @@
 package com.qingshan.service;
 
+import com.qingshan.dto.Result;
 import com.qingshan.entity.Shop;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
- * <p>
- *  服务类
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
+ * 查询商户服务类接口
  */
 public interface IShopService extends IService<Shop> {
-
+    // 根据id查询商户信息
+    public Result queryById(Long id);
 }
