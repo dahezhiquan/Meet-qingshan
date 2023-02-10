@@ -1,9 +1,11 @@
 package com.qingshan.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.RandomUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qingshan.dto.LoginFormDTO;
 import com.qingshan.dto.Result;
+import com.qingshan.dto.UserDTO;
 import com.qingshan.entity.User;
 import com.qingshan.mapper.UserMapper;
 import com.qingshan.service.IUserService;
@@ -76,8 +78,8 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             user = createUserWithPhone(phone);
         }
 
-        // 保证用户一定存在，保存用户信息到session中
-        session.setAttribute("user", user);
+        // 保证用户一定存在，保存简易用户信息对象UserDTO到session中
+        session.setAttribute("user", BeanUtil.copyProperties(user, UserDTO.class));
         return Result.ok();
     }
 
