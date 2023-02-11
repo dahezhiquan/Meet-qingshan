@@ -9,6 +9,7 @@ public class RedisConstants {
     public static final String LOGIN_USER_KEY = "qingshan:login:token:";
     public static final Long LOGIN_USER_TTL = 30L;
 
+    // 缓存null值的过期时间
     public static final Long CACHE_NULL_TTL = 2L;
 
     public static final Long CACHE_SHOP_TTL = 30L;
