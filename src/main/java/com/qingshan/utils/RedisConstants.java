@@ -19,6 +19,7 @@ public class RedisConstants {
 
     public static final Long CACHE_SHOP_TYPE_TTL = 120L;
 
+    // 解决缓存击穿问题的锁前缀
     public static final String LOCK_SHOP_KEY = "qingshan:lock:shop:";
     public static final Long LOCK_SHOP_TTL = 10L;
 
