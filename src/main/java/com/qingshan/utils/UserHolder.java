@@ -1,7 +1,6 @@
 package com.qingshan.utils;
 
 import com.qingshan.dto.UserDTO;
-import com.qingshan.entity.User;
 
 public class UserHolder {
     private static final ThreadLocal<UserDTO> tl = new ThreadLocal<>();

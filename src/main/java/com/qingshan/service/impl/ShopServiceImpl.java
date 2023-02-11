@@ -8,12 +8,14 @@ import com.qingshan.entity.Shop;
 import com.qingshan.mapper.ShopMapper;
 import com.qingshan.service.IShopService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.qingshan.utils.RedisData;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
+import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 import static com.qingshan.utils.RedisConstants.*;
@@ -50,7 +52,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
      * @param id 商户id
      * @return 商户对象
      */
-    public Shop queryWithMutex(Long id) {
+    private Shop queryWithMutex(Long id) {
         // 从redis查询商户缓存
         String shopJson = stringRedisTemplate.opsForValue().get(CACHE_SHOP_KEY + id);
         // 判断商户缓存是否存在
@@ -139,6 +141,23 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
      */
     private void unlock(String key) {
         stringRedisTemplate.delete(key);
+    }
+
+    /**
+     * 将热点商户加入到缓存中，进行预热
+     *
+     * @param id            商户id
+     * @param expireSeconds 逻辑过期时间
+     */
+    public void saveShopToRedis(Long id, Long expireSeconds) {
+        // 查询商户数据
+        Shop shop = getById(id);
+        // 封装逻辑过期时间对象
+        RedisData redisData = new RedisData();
+        redisData.setData(shop);
+        redisData.setExpireTime(LocalDateTime.now().plusSeconds(expireSeconds));
+        // 写入Redis
+        stringRedisTemplate.opsForValue().set(CACHE_SHOP_KEY + id, JSONUtil.toJsonStr(redisData));
     }
 
 
