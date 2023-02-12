@@ -21,6 +21,9 @@ public class RedisConstants {
 
     // 解决缓存击穿问题的锁前缀
     public static final String LOCK_SHOP_KEY = "qingshan:lock:shop:";
+
+    // Redis ID 自生成策略序列号的前缀
+    public static final String INCR_KEY = "qiangshan:icr:";
     public static final Long LOCK_SHOP_TTL = 10L;
 
     public static final String SECKILL_STOCK_KEY = "qingshan:seckill:stock:";

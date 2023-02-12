@@ -1,6 +1,6 @@
 package com.qingshan;
 
-import com.qingshan.service.impl.ShopServiceImpl;
+import com.qingshan.utils.RedisIdWorker;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -12,13 +12,14 @@ import javax.annotation.Resource;
 @RunWith(SpringRunner.class)
 public class QingShanApplicationTests {
     @Resource
-    private ShopServiceImpl shopService;
+    private RedisIdWorker redisIdWorker;
 
     /**
-     * 添加热点商户到Redis缓存的测试类
+     * 生成订单id信息单元测试
      */
     @Test
-    public void testSaveShop() {
-        shopService.saveShopToRedis(1L, 10L);
+    public void testIdWorker() {
+        long test = redisIdWorker.nextId("test");
+        System.out.println(test);
     }
 }

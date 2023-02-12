@@ -1,22 +1,17 @@
 package com.qingshan.service.impl;
 
-import cn.hutool.core.util.BooleanUtil;
-import cn.hutool.json.JSONUtil;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.qingshan.dto.Result;
 import com.qingshan.entity.Shop;
 import com.qingshan.mapper.ShopMapper;
 import com.qingshan.service.IShopService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qingshan.utils.CacheClient;
-import com.qingshan.utils.RedisData;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
-import java.time.LocalDateTime;
 import java.util.concurrent.TimeUnit;
 
 import static com.qingshan.utils.RedisConstants.*;
