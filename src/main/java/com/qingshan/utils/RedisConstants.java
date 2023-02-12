@@ -26,6 +26,9 @@ public class RedisConstants {
     public static final String INCR_KEY = "qiangshan:icr:";
     public static final Long LOCK_SHOP_TTL = 10L;
 
+    // 实现的分布式锁的前缀
+    public static final String LOCK_KEY = "qingshan:lock:";
+
     public static final String SECKILL_STOCK_KEY = "qingshan:seckill:stock:";
     public static final String BLOG_LIKED_KEY = "qingshan:blog:liked:";
     public static final String FEED_KEY = "qingshan:feed:";

@@ -8,8 +8,10 @@ import com.qingshan.service.ISeckillVoucherService;
 import com.qingshan.service.IVoucherOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qingshan.utils.RedisIdWorker;
+import com.qingshan.utils.SimpleRedisLock;
 import com.qingshan.utils.UserHolder;
 import org.springframework.aop.framework.AopContext;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     @Resource
     private RedisIdWorker redisIdWorker;
+
+    @Resource
+    private StringRedisTemplate stringRedisTemplate;
 
 
     /**
@@ -58,12 +63,23 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         // 得到用户ID
         Long userId = UserHolder.getUser().getId();
 
-        // 创建新订单，基于悲观锁实现一人一单功能
-        synchronized (userId.toString().intern()) {
+        // 创建锁对象
+        SimpleRedisLock lock = new SimpleRedisLock("order" + userId, stringRedisTemplate);
+        // 获取锁
+        boolean isLock = lock.tryLock(5);
+        // 获取锁失败，代表当前用户在多次抢券
+        if (!isLock) {
+            return Result.fail("您已经抢过了哦~");
+        }
+
+        try {
             // 为了防止事务失效，这里使用代理对象调用方法
             IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
             // 返回订单id
             return proxy.createVoucherOrder(voucherId);
+        } finally {
+            // 手动释放锁
+            lock.unlock();
         }
     }
 
