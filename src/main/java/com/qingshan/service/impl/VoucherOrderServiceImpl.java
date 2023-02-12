@@ -9,6 +9,7 @@ import com.qingshan.service.IVoucherOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qingshan.utils.RedisIdWorker;
 import com.qingshan.utils.UserHolder;
+import org.springframework.aop.framework.AopContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,7 +36,6 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
      * @return Result
      */
     @Override
-    @Transactional
     public Result seckillVoucher(Long voucherId) {
         // 查询优惠券
         SeckillVoucher voucher = seckillVoucherService.getById(voucherId);
@@ -54,6 +54,36 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         if (voucher.getStock() < 1) {
             return Result.fail("库存不足啦！");
         }
+
+        // 得到用户ID
+        Long userId = UserHolder.getUser().getId();
+
+        // 创建新订单，基于悲观锁实现一人一单功能
+        synchronized (userId.toString().intern()) {
+            // 为了防止事务失效，这里使用代理对象调用方法
+            IVoucherOrderService proxy = (IVoucherOrderService) AopContext.currentProxy();
+            // 返回订单id
+            return proxy.createVoucherOrder(voucherId);
+        }
+    }
+
+    /**
+     * 创建新订单，基于悲观锁实现一人一单功能
+     *
+     * @param voucherId 优惠券id
+     * @return Result
+     */
+    @Transactional
+    public Result createVoucherOrder(Long voucherId) {
+        // 得到用户ID
+        Long userId = UserHolder.getUser().getId();
+
+        // 判断用户是否已经抢过该优惠券
+        int count = query().eq("user_id", userId).eq("voucher_id", voucherId).count();
+        if (count > 0) {
+            return Result.fail("已经抢过啦！");
+        }
+
         // 扣减库存
         boolean isDeduction = seckillVoucherService.update()
                 .setSql("stock = stock - 1")
@@ -68,11 +98,11 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         VoucherOrder voucherOrder = new VoucherOrder();
         long orderId = redisIdWorker.nextId("order");
         voucherOrder.setId(orderId);
-        voucherOrder.setUserId(UserHolder.getUser().getId());
+        voucherOrder.setUserId(userId);
         voucherOrder.setVoucherId(voucherId);
         save(voucherOrder);
 
-        // 返回订单id
         return Result.ok(orderId);
     }
+
 }
