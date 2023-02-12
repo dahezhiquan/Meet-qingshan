@@ -6,6 +6,9 @@ import java.util.concurrent.TimeUnit;
 
 import static com.qingshan.utils.RedisConstants.LOCK_KEY;
 
+/**
+ * Redis实现的分布式锁
+ */
 public class SimpleRedisLock implements ILock {
 
     private String name;

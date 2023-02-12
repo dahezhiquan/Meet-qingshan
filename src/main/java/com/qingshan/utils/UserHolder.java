@@ -2,6 +2,9 @@ package com.qingshan.utils;
 
 import com.qingshan.dto.UserDTO;
 
+/**
+ * 使用ThreadLocal存放登录的用户
+ */
 public class UserHolder {
     private static final ThreadLocal<UserDTO> tl = new ThreadLocal<>();
 

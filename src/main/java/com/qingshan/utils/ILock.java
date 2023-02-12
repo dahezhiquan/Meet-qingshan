@@ -1,5 +1,8 @@
 package com.qingshan.utils;
 
+/**
+ * Redis实现的分布式锁接口
+ */
 public interface ILock {
     /**
      * 尝试获取锁
