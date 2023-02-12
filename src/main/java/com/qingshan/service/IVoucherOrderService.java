@@ -1,16 +1,13 @@
 package com.qingshan.service;
 
+import com.qingshan.dto.Result;
 import com.qingshan.entity.VoucherOrder;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
- * <p>
- *  服务类
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
+ * 秒杀服务接口类
  */
 public interface IVoucherOrderService extends IService<VoucherOrder> {
 
+    Result seckillVoucher(Long voucherId);
 }
