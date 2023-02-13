@@ -1,7 +1,11 @@
 package com.qingshan.utils;
 
 import cn.hutool.core.lang.UUID;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.script.DefaultRedisScript;
+
+import java.util.Collections;
 import java.util.concurrent.TimeUnit;
 
 import static com.qingshan.utils.RedisConstants.LOCK_KEY;
@@ -24,6 +28,15 @@ public class SimpleRedisLock implements ILock {
 
     // 分布式锁的线程标识前缀，防止多个虚拟机线程ID一致，存入同样的redis分布式锁key中的巧合
     private static final String ID_PREFIX = UUID.randomUUID().toString(true) + "-";
+
+    // 引入Lua脚本
+    private static final DefaultRedisScript<Long> UNLOCK_SCRIPT;
+
+    static {
+        UNLOCK_SCRIPT = new DefaultRedisScript<>();
+        UNLOCK_SCRIPT.setLocation(new ClassPathResource("unlock.lua"));
+        UNLOCK_SCRIPT.setResultType(Long.class);
+    }
 
     /**
      * 尝试获取锁
@@ -48,14 +61,10 @@ public class SimpleRedisLock implements ILock {
      */
     @Override
     public void unlock() {
-        // 获取线程标识，随机UUID + 线程id
-        String threadId = ID_PREFIX + Thread.currentThread().getId();
-        // 获取redis分布式锁中的标识
-        String lockId = stringRedisTemplate.opsForValue().get(LOCK_KEY + name);
-        // 判断标识是否一致（是否是自己的锁🔒）
-        if (threadId.equals(lockId)) {
-            // 释放锁
-            stringRedisTemplate.delete(LOCK_KEY + name);
-        }
+        // 调用Lua脚本解决释放锁的原子性问题
+        stringRedisTemplate.execute(UNLOCK_SCRIPT,
+                Collections.singletonList(LOCK_KEY + name),
+                ID_PREFIX + Thread.currentThread().getId());
+
     }
 }
