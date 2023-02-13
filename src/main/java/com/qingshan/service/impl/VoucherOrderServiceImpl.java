@@ -8,8 +8,9 @@ import com.qingshan.service.ISeckillVoucherService;
 import com.qingshan.service.IVoucherOrderService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qingshan.utils.RedisIdWorker;
-import com.qingshan.utils.SimpleRedisLock;
 import com.qingshan.utils.UserHolder;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.time.LocalDateTime;
+
+import static com.qingshan.utils.RedisConstants.LOCK_KEY;
 
 /**
  * 秒杀服务实现类
@@ -32,6 +35,9 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private RedissonClient redissonClient;
 
 
     /**
@@ -64,9 +70,14 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         Long userId = UserHolder.getUser().getId();
 
         // 创建锁对象
-        SimpleRedisLock lock = new SimpleRedisLock("order" + userId, stringRedisTemplate);
+        // 我们自己实现的锁
+        // SimpleRedisLock lock = new SimpleRedisLock("order" + userId, stringRedisTemplate);
+
+        // 这里使用Redisson的锁改进我们自己实现的锁🔒
+        RLock lock = redissonClient.getLock(LOCK_KEY + "order:" + userId);
+
         // 获取锁
-        boolean isLock = lock.tryLock(5);
+        boolean isLock = lock.tryLock();
         // 获取锁失败，代表当前用户在多次抢券
         if (!isLock) {
             return Result.fail("您已经抢过了哦~");
