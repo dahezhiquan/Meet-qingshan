@@ -29,6 +29,7 @@ public class RedisConstants {
     // 实现的分布式锁的前缀
     public static final String LOCK_KEY = "qingshan:lock:";
 
+    // 秒杀券的库存信息
     public static final String SECKILL_STOCK_KEY = "qingshan:seckill:stock:";
     public static final String BLOG_LIKED_KEY = "qingshan:blog:liked:";
     public static final String FEED_KEY = "qingshan:feed:";

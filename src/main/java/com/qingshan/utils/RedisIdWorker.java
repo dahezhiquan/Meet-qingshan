@@ -41,9 +41,6 @@ public class RedisIdWorker {
         // Redis自增长实现序列号包装
         long count = stringRedisTemplate.opsForValue().increment(INCR_KEY + keyPrefix + ":" + date);
 
-        System.out.println(timestamp);
-        System.out.println(count);
-
         // 采用位运算接收并返回拼接的id
         return timestamp << 32 | count;
     }
