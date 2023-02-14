@@ -93,8 +93,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         // 获取登录用户
         Long userId = UserHolder.getUser().getId();
         // 判断用户是否已经点赞
-        Boolean isLiked = stringRedisTemplate.opsForSet().isMember(BLOG_LIKED_KEY + blog.getId(), userId.toString());
-        blog.setIsLike(BooleanUtil.isTrue(isLiked));
+        Double score = stringRedisTemplate.opsForZSet().score(BLOG_LIKED_KEY + blog.getId(), userId.toString());
+        blog.setIsLike(score != null);
     }
 
     /**
@@ -107,24 +107,24 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
     public Result likeBlog(Long id) {
         // 获取登录用户
         Long userId = UserHolder.getUser().getId();
-        // 判断用户是否已经点赞
-        Boolean isLiked = stringRedisTemplate.opsForSet().isMember(BLOG_LIKED_KEY + id, userId.toString());
-
-        if (BooleanUtil.isFalse(isLiked)) {
+        // 判断用户是否已经点赞，看用户的点赞分数是否存在即可
+        Double score = stringRedisTemplate.opsForZSet().score(BLOG_LIKED_KEY + id, userId.toString());
+        if (score == null) {
             // 未点赞，可以点赞
             // 数据库点赞数 + 1
             boolean isSuccess = update().setSql("liked = liked + 1").eq("id", id).update();
-            // 保存用户到点赞redis集合中
+            // 保存用户到点赞redis排序集合中，用当前的时间戳当作分数
+            // 因为我们我按照点赞时间展示点赞列表
             if (isSuccess) {
-                stringRedisTemplate.opsForSet().add(BLOG_LIKED_KEY + id, userId.toString());
+                stringRedisTemplate.opsForZSet().add(BLOG_LIKED_KEY + id, userId.toString(), System.currentTimeMillis());
             }
         } else {
             // 已经点赞，取消点赞
             // 数据库点赞数 - 1
             boolean isSuccess = update().setSql("liked = liked - 1").eq("id", id).update();
-            // 将用户从点赞redis集合中移除
+            // 将用户从点赞redis排序集合中移除
             if (isSuccess) {
-                stringRedisTemplate.opsForSet().remove(BLOG_LIKED_KEY + id, userId.toString());
+                stringRedisTemplate.opsForZSet().remove(BLOG_LIKED_KEY + id, userId.toString());
             }
         }
         return Result.ok();
