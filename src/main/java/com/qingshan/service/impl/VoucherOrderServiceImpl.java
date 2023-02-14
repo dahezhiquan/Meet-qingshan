@@ -1,7 +1,6 @@
 package com.qingshan.service.impl;
 
 import com.qingshan.dto.Result;
-import com.qingshan.entity.SeckillVoucher;
 import com.qingshan.entity.VoucherOrder;
 import com.qingshan.mapper.VoucherOrderMapper;
 import com.qingshan.service.ISeckillVoucherService;
@@ -188,10 +187,8 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
             log.error("库存不足啦！");
             return;
         }
-
         // 保存订单
         save(voucherOrder);
-
     }
 
 
