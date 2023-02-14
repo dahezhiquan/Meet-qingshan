@@ -1,8 +1,11 @@
 package com.qingshan.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.BooleanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qingshan.dto.Result;
+import com.qingshan.dto.UserDTO;
 import com.qingshan.entity.Blog;
 import com.qingshan.entity.User;
 import com.qingshan.mapper.BlogMapper;
@@ -11,11 +14,15 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.qingshan.service.IUserService;
 import com.qingshan.utils.SystemConstants;
 import com.qingshan.utils.UserHolder;
+import net.sf.jsqlparser.expression.LongValue;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.qingshan.utils.RedisConstants.BLOG_LIKED_KEY;
 
@@ -128,5 +135,32 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
             }
         }
         return Result.ok();
+    }
+
+    /**
+     * 查询博客的点赞列表
+     *
+     * @param id 博客id
+     * @return Result
+     */
+    @Override
+    public Result queryBlogLikes(Long id) {
+        // 查询top的点赞用户
+        Set<String> likedTop5 = stringRedisTemplate.opsForZSet().range(BLOG_LIKED_KEY + id, 0, 4);
+        // 解析出用户id信息
+        // 防止空指针异常
+        if (likedTop5 == null || likedTop5.isEmpty()) {
+            return Result.ok(Collections.emptyList());
+        }
+        List<Long> ids = likedTop5.stream().map(Long::valueOf).collect(Collectors.toList());
+        // 将id拼接成字符串
+        String idStr = StrUtil.join(",", ids);
+        // 根据id查询用户
+        List<User> users = userService.query().in("id", ids)
+                .last("ORDER BY FIELD(id," + idStr + ")").list();
+        // 封装UserDTO对象
+        List<UserDTO> userDTOs = BeanUtil.copyToList(users, UserDTO.class);
+        // 返回用户信息
+        return Result.ok(userDTOs);
     }
 }
