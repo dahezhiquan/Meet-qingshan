@@ -1,16 +1,17 @@
 package com.qingshan.service;
 
+import com.qingshan.dto.Result;
 import com.qingshan.entity.Blog;
 import com.baomidou.mybatisplus.extension.service.IService;
 
 /**
- * <p>
- *  服务类
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
+ * 博客相关接口
  */
 public interface IBlogService extends IService<Blog> {
 
+    Result queryHotBlog(Integer current);
+
+    Result queryBlogById(Long id);
+
+    Result likeBlog(Long id);
 }
