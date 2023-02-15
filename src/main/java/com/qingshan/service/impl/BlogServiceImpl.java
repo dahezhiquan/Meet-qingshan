@@ -7,10 +7,12 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qingshan.dto.Result;
 import com.qingshan.dto.UserDTO;
 import com.qingshan.entity.Blog;
+import com.qingshan.entity.Follow;
 import com.qingshan.entity.User;
 import com.qingshan.mapper.BlogMapper;
 import com.qingshan.service.IBlogService;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.qingshan.service.IFollowService;
 import com.qingshan.service.IUserService;
 import com.qingshan.utils.SystemConstants;
 import com.qingshan.utils.UserHolder;
@@ -25,6 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.qingshan.utils.RedisConstants.BLOG_LIKED_KEY;
+import static com.qingshan.utils.RedisConstants.FEED_KEY;
 
 /**
  * 博客服务实现类
@@ -37,6 +40,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
 
     @Resource
     private StringRedisTemplate stringRedisTemplate;
+
+    @Resource
+    private IFollowService followService;
 
     /**
      * 根据博客查询用户信息，将用户信息封装到博客对象里传输
@@ -162,5 +168,32 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         List<UserDTO> userDTOs = BeanUtil.copyToList(users, UserDTO.class);
         // 返回用户信息
         return Result.ok(userDTOs);
+    }
+
+    /**
+     * 保存博客
+     *
+     * @param blog 博客对象
+     * @return 博客的ID
+     */
+    @Override
+    public Result saveBlog(Blog blog) {
+        // 获取登录用户
+        UserDTO user = UserHolder.getUser();
+        blog.setUserId(user.getId());
+        // 保存探店博文
+        boolean isSave = save(blog);
+        if (!isSave) {
+            return Result.fail("新增笔记失败！");
+        }
+        // 查询笔记作者的所有粉丝
+        List<Follow> follows = followService.query().eq("follow_user_id", user.getId()).list();
+        for (Follow follow : follows) {
+            Long userId = follow.getUserId();
+            // 开始推送
+            stringRedisTemplate.opsForZSet().add(FEED_KEY + userId, blog.getId().toString(), System.currentTimeMillis());
+        }
+        // 返回id
+        return Result.ok(blog.getId());
     }
 }
