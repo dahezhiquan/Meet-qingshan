@@ -63,9 +63,6 @@ public class BlogController {
 
     /**
      * 查询热门博客
-     *
-     * @param current
-     * @return
      */
     @GetMapping("/hot")
     public Result queryHotBlog(@RequestParam(value = "current", defaultValue = "1") Integer current) {
@@ -103,5 +100,18 @@ public class BlogController {
         // 获取当前页的数据
         List<Blog> records = page.getRecords();
         return Result.ok(records);
+    }
+
+    /**
+     * 滚动分页查询Feed流推送的博客
+     * @param max 上一次查询的最小值，用于实现滚动查询
+     * @param offset 偏移量，防止查询到重复数据
+     * @return Result
+     */
+    @GetMapping("/of/follow")
+    public Result queryBlogOfFollow(
+            @RequestParam("lastId") Long max,
+            @RequestParam(value = "offset", defaultValue = "0") Integer offset) {
+        return blogService.queryBlogOfFollow(max, offset);
     }
 }

@@ -3,8 +3,10 @@ package com.qingshan.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qingshan.dto.Result;
+import com.qingshan.dto.ScrollResult;
 import com.qingshan.dto.UserDTO;
 import com.qingshan.entity.Blog;
 import com.qingshan.entity.Follow;
@@ -18,16 +20,16 @@ import com.qingshan.utils.SystemConstants;
 import com.qingshan.utils.UserHolder;
 import net.sf.jsqlparser.expression.LongValue;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.qingshan.utils.RedisConstants.BLOG_LIKED_KEY;
 import static com.qingshan.utils.RedisConstants.FEED_KEY;
+import static com.qingshan.utils.SystemConstants.DEFAULT_PAGE_SIZE;
 
 /**
  * 博客服务实现类
@@ -195,5 +197,70 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog> implements IB
         }
         // 返回id
         return Result.ok(blog.getId());
+    }
+
+    /**
+     * 滚动分页查询Feed流推送的博客
+     *
+     * @param max    上一次查询的最小值，用于实现滚动查询
+     * @param offset 偏移量，防止查询到重复数据
+     * @return Result
+     */
+    @Override
+    public Result queryBlogOfFollow(Long max, Integer offset) {
+
+        // 获取当前用户
+        Long userId = UserHolder.getUser().getId();
+
+        // 查询当前用户的收件箱
+        Set<ZSetOperations.TypedTuple<String>> tuples = stringRedisTemplate.opsForZSet().
+                reverseRangeByScoreWithScores(FEED_KEY + userId, 0, max, offset, DEFAULT_PAGE_SIZE);
+        if (tuples == null || tuples.isEmpty()) {
+            return Result.ok();
+        }
+
+        // 创建集合，保存id
+        ArrayList<Long> ids = new ArrayList<>(tuples.size());
+
+        // 保存最小时间
+        long minTime = 0;
+
+        // 保存偏移量
+        int os = 1;
+
+        // 开始解析数据，得到最终的ids，minTime，offset（os）值
+        for (ZSetOperations.TypedTuple<String> tuple : tuples) {
+            // 获取id并保存
+            ids.add(Long.valueOf(Objects.requireNonNull(tuple.getValue())));
+            // 获取分数（时间戳）
+            long time = Objects.requireNonNull(tuple.getScore()).longValue();
+            if (time == minTime) {
+                os++;
+            } else {
+                // 最后一个元组的时间一定是最小时间
+                minTime = time;
+                // 重置偏移量
+                os = 1;
+            }
+        }
+        String idStr = StrUtil.join(",", ids);
+        // 根据id查询blog
+        List<Blog> blogs = query().in("id", ids)
+                .last("ORDER BY FIELD(id," + idStr + ")").list();
+
+        // 给每个blog封装点赞，作者等信息
+        for (Blog blog : blogs) {
+            // 查询blog有关的用户
+            queryBlogUser(blog);
+            // 查询blog的点赞信息，当前用户是否点过赞？
+            isBlogLiked(blog);
+        }
+
+        // 返回博客集合给前端
+        ScrollResult scrollResult = new ScrollResult();
+        scrollResult.setList(blogs);
+        scrollResult.setMinTime(minTime);
+        scrollResult.setOffset(os);
+        return Result.ok(scrollResult);
     }
 }
