@@ -12,11 +12,14 @@ import com.qingshan.entity.User;
 import com.qingshan.mapper.UserMapper;
 import com.qingshan.service.IUserService;
 import com.qingshan.utils.SystemConstants;
+import com.qingshan.utils.UserHolder;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -121,5 +124,25 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
         user.setNickName(SystemConstants.USER_NICK_NAME_PREFIX + RandomUtil.randomString(10));
         save(user);
         return user;
+    }
+
+    /**
+     * 签到
+     *
+     * @return Result
+     */
+    @Override
+    public Result sign() {
+        // 获取当前登录用户
+        Long userId = UserHolder.getUser().getId();
+        // 获取日期
+        LocalDateTime now = LocalDateTime.now();
+        String keySuffix = now.format(DateTimeFormatter.ofPattern("yyyyMM"));
+        String key = USER_SIGN_KEY + userId + keySuffix;
+        // 获取今天是本月第几天
+        int dayOfMonth = now.getDayOfMonth();
+        // 写入bitmap，进行签到
+        stringRedisTemplate.opsForValue().setBit(key, dayOfMonth - 1, true);
+        return Result.ok();
     }
 }

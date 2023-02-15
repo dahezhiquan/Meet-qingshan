@@ -86,6 +86,7 @@ public class UserController {
 
     /**
      * 根据id查询用户信息，用于获取某个用户的详情页
+     *
      * @param userId 用户id
      * @return Result
      */
@@ -97,6 +98,15 @@ public class UserController {
         }
         UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
         return Result.ok(userDTO);
+    }
+
+    /**
+     * 签到
+     * @return Result
+     */
+    @PostMapping("/sign")
+    public Result sign() {
+        return userService.sign();
     }
 
 

@@ -35,6 +35,8 @@ public class RedisConstants {
 
     public static final String FOLLOW_KEY = "qingshan:follow:";
     public static final String FEED_KEY = "qingshan:feed:";
-    public static final String SHOP_GEO_KEY = "qingshan:shop:geo:";
+    // public static final String SHOP_GEO_KEY = "qingshan:shop:geo:";
+
+    // 签到key前缀
     public static final String USER_SIGN_KEY = "qingshan:sign:";
 }
