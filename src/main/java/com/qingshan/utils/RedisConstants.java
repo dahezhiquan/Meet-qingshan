@@ -32,6 +32,8 @@ public class RedisConstants {
     // 秒杀券的库存信息
     public static final String SECKILL_STOCK_KEY = "qingshan:seckill:stock:";
     public static final String BLOG_LIKED_KEY = "qingshan:blog:liked:";
+
+    public static final String FOLLOW_KEY = "qingshan:follow:";
     public static final String FEED_KEY = "qingshan:feed:";
     public static final String SHOP_GEO_KEY = "qingshan:shop:geo:";
     public static final String USER_SIGN_KEY = "qingshan:sign:";

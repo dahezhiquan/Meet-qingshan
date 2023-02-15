@@ -1,9 +1,11 @@
 package com.qingshan.controller;
 
 
+import cn.hutool.core.bean.BeanUtil;
 import com.qingshan.dto.LoginFormDTO;
 import com.qingshan.dto.Result;
 import com.qingshan.dto.UserDTO;
+import com.qingshan.entity.User;
 import com.qingshan.entity.UserInfo;
 import com.qingshan.service.IUserInfoService;
 import com.qingshan.service.IUserService;
@@ -81,4 +83,21 @@ public class UserController {
         // 返回
         return Result.ok(info);
     }
+
+    /**
+     * 根据id查询用户信息，用于获取某个用户的详情页
+     * @param userId 用户id
+     * @return Result
+     */
+    @GetMapping("/{id}")
+    public Result queryUserById(@PathVariable("id") Long userId) {
+        User user = userService.getById(userId);
+        if (user == null) {
+            return Result.fail("该用户已经不存在啦！");
+        }
+        UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
+        return Result.ok(userDTO);
+    }
+
+
 }
