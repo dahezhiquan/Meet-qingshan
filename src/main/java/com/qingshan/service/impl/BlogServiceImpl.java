@@ -1,9 +1,7 @@
 package com.qingshan.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
-import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.core.util.StrUtil;
-import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.qingshan.dto.Result;
 import com.qingshan.dto.ScrollResult;
@@ -18,7 +16,6 @@ import com.qingshan.service.IFollowService;
 import com.qingshan.service.IUserService;
 import com.qingshan.utils.SystemConstants;
 import com.qingshan.utils.UserHolder;
-import net.sf.jsqlparser.expression.LongValue;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
