@@ -6,6 +6,9 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+/**
+ * 与前端交互的通用实体
+ */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

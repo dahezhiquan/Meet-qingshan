@@ -6,9 +6,7 @@ import com.qingshan.dto.Result;
 import com.qingshan.dto.UserDTO;
 import com.qingshan.entity.Blog;
 import com.qingshan.service.IBlogService;
-import com.qingshan.utils.SystemConstants;
 import com.qingshan.utils.UserHolder;
-import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
