@@ -102,11 +102,22 @@ public class UserController {
 
     /**
      * 签到
+     *
      * @return Result
      */
     @PostMapping("/sign")
     public Result sign() {
         return userService.sign();
+    }
+
+    /**
+     * 计算连续签到天数
+     *
+     * @return Result
+     */
+    @GetMapping("/sign/count")
+    public Result signCount() {
+        return userService.signCount();
     }
 
 
